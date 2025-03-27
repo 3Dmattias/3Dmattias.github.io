@@ -33,6 +33,8 @@
             text-align: center;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
             margin-bottom: 30px;
+            caret-color: #e0e0e0;
+            animation: none;
         }
         .button-grid {
             display: grid;
@@ -49,10 +51,9 @@
             border-radius: 8px;
             background-color: #6b6b6b;
             color: #e0e0e0;
-            cursor: default; /* Changed from 'pointer' to indicate no click action */
+            cursor: pointer; /* Reverted to indicate clickability */
             transition: background-color 0.2s;
         }
-        /* Removed button:hover to disable mouseover highlighting */
         button.active {
             background-color: #ff9500;
         }
@@ -171,6 +172,7 @@
             return { newValue: value, newPos: pos };
         }
 
+        // Keyboard event listener
         input.addEventListener('keydown', (e) => {
             let value = input.value;
             let pos = input.selectionStart;
@@ -186,9 +188,7 @@
 
                 let { newValue, newPos } = adjustNumber(value, pos, e.key === 'ArrowUp' ? 'up' : 'down');
                 input.value = newValue;
-                setTimeout(() => {
-                    input.setSelectionRange(newPos, newPos);
-                }, 0);
+                setTimeout(() => input.setSelectionRange(newPos, newPos), 0);
             } else if (e.key === 'ArrowLeft' && pos === 0) {
                 e.preventDefault();
                 const button = buttons['ArrowLeft'];
@@ -197,9 +197,7 @@
 
                 before = '0' + before;
                 input.value = `${before}.${after}`;
-                setTimeout(() => {
-                    input.setSelectionRange(0, 0);
-                }, 0);
+                setTimeout(() => input.setSelectionRange(0, 0), 0);
             } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 const button = buttons['ArrowRight'];
@@ -210,15 +208,71 @@
                     after += '0';
                     input.value = `${before}.${after}`;
                     const newPos = input.value.length - 1;
-                    setTimeout(() => {
-                        input.setSelectionRange(newPos, newPos);
-                    }, 0);
+                    setTimeout(() => input.setSelectionRange(newPos, newPos), 0);
                 } else {
-                    setTimeout(() => {
-                        input.setSelectionRange(pos + 1, pos + 1);
-                    }, 0);
+                    setTimeout(() => input.setSelectionRange(pos + 1, pos + 1), 0);
                 }
             }
+        });
+
+        // Click event listeners for buttons
+        buttons['ArrowUp'].addEventListener('click', () => {
+            let value = input.value;
+            let pos = input.selectionStart;
+            buttons['ArrowUp'].classList.add('active');
+            setTimeout(() => buttons['ArrowUp'].classList.remove('active'), 200);
+            let { newValue, newPos } = adjustNumber(value, pos, 'up');
+            input.value = newValue;
+            input.setSelectionRange(newPos, newPos);
+            input.focus(); // Keep input focused after click
+        });
+
+        buttons['ArrowDown'].addEventListener('click', () => {
+            let value = input.value;
+            let pos = input.selectionStart;
+            buttons['ArrowDown'].classList.add('active');
+            setTimeout(() => buttons['ArrowDown'].classList.remove('active'), 200);
+            let { newValue, newPos } = adjustNumber(value, pos, 'down');
+            input.value = newValue;
+            input.setSelectionRange(newPos, newPos);
+            input.focus();
+        });
+
+        buttons['ArrowLeft'].addEventListener('click', () => {
+            let value = input.value;
+            let pos = input.selectionStart;
+            buttons['ArrowLeft'].classList.add('active');
+            setTimeout(() => buttons['ArrowLeft'].classList.remove('active'), 200);
+            if (pos === 0) {
+                let parts = value.split('.');
+                let before = parts[0];
+                let after = parts[1] || '';
+                before = '0' + before;
+                input.value = `${before}.${after}`;
+                input.setSelectionRange(0, 0);
+            } else {
+                input.setSelectionRange(pos - 1, pos - 1);
+            }
+            input.focus();
+        });
+
+        buttons['ArrowRight'].addEventListener('click', () => {
+            let value = input.value;
+            let pos = input.selectionStart;
+            buttons['ArrowRight'].classList.add('active');
+            setTimeout(() => buttons['ArrowRight'].classList.remove('active'), 200);
+            let parts = value.split('.');
+            let before = parts[0];
+            let after = parts[1] || '';
+            if (pos >= value.length - 1) {
+                after += '0';
+                input.value = `${before}.${after}`;
+                const newPos = input.value.length - 1;
+                input.setSelectionRange(newPos, newPos);
+            } else {
+                input.setSelectionRange(pos + 1, pos + 1);
+            }
+            input.focus();
         });
     </script>
 </body>
